@@ -3,7 +3,7 @@ const produtosArray = [
     { id: 1, nome: "Notebook", preco: 3500.00, estoque: 10 },
     { id: 2, nome: "Mouse Gamer", preco: 120.00, estoque: 45 },
     { id: 3, nome: "Teclado Mecânico", preco: 250.00, estoque: 20 },
-    { id: 4, nome: "Monitor 24\"", preco: 890.00, estoque: 8 },
+    { id: 4, nome: "Monitor 24", preco: 890.00, estoque: 8 },
     { id: 5, nome: "Headset Bluetooth", preco: 199.90, estoque: 30 },
     { id: 6, nome: "Cadeira Gamer", preco: 999.00, estoque: 5 },
     { id: 7, nome: "Pendrive 64GB", preco: 55.00, estoque: 60 },
@@ -21,17 +21,18 @@ produtosArray.forEach(p => mapaProdutos.set(p.id, p));
 const catalogo = {
 
     listar() {
-        if (produtos.length === 0) {
+        if (mapaProdutos.length === 0) {
             console.log("Nenhum produto encontrado.");
             return [];
         }
-        return Array.from(mapaProdutos.values();
+        return Array.from(mapaProdutos.values());
     },
 
     buscarPorNome(nome) {
         try {
             const produto = Array.from(mapaProdutos.values().find(
                 p => p.nome.toLowerCase() === nome.toLowerCase()
+                )
             );
 
             if (!produto) {
@@ -113,7 +114,7 @@ const adicionar = (carrinho, produtoId, qtd) => {
 
         if (qtd > produto.estoque) {
             throw new Error("Quantidade maior que o estoque!");
-        }
+        } 
 
         const item = carrinho.find(i => i.produtoId === produtoId);
 
@@ -213,20 +214,22 @@ function aplicarCupom(total, codigoCupom) {
     return totalComDesconto;
 }
 
+
+
 // =================== TESTES ===================
 
 console.log("==============Listando produtos==============");
 console.log(catalogo.listar());
 
 console.log("==============Buscando por nome==============");
-console.log(catalogo.buscarPorNome("Notebook")); // deve dar erro
-console.log(catalogo.buscarPorId(5));      // válido
+console.log(catalogo.buscarPorNome("Notebook"));
+console.log(catalogo.buscarPorId(5));
 
 console.log("==============Filtrando por faixa de preço==============");
-console.log(catalogo.filtrarPorPreco(100, 500)); // nenhum produto
+console.log(catalogo.filtrarPorPreco(100, 500));
 
 console.log("==============Atualizando estoque==============");
-console.log(catalogo.atualizarEstoque(2, 100));
+console.log(catalogo.atualizarEstoque(10, 100));
 
 console.log("==============Estoque atualizado==============");
 console.log(catalogo.listar());
@@ -235,6 +238,7 @@ console.log(catalogo.listar());
 console.log("==============Testando carrinho==============");
 adicionar(carrinho, 5, 2);
 adicionar(carrinho, 7, 3);
+adicionar(carrinho, 3, 10);
 adicionar(carrinho, 3, 10);
 adicionar(carrinho, 4, 2);
 remover(carrinho, 7)
@@ -247,4 +251,4 @@ console.log("Total: R$", calcularTotal(carrinho));
 console.log("==============Pedido com desconto==============");
 const total = calcularTotal(carrinho);
 console.log("Total sem desconto:", total);
-console.log("Total com desconto:", aplicarCupom(total, "BLACK20"));
+console.log("Total com desconto:", aplicarCupom(total, "DESCONTO10"));
