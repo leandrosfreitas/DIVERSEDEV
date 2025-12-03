@@ -12,10 +12,10 @@ const produtos = [
     { id: 10, nome: "Carregador USB-C", preco: 70.00, estoque: 40 }
 ];
 
-// catalogo de produtos
-const catalogo= {
+// catálogo de produtos
+const catalogo = {
 
-    listar(){
+    listar() {
         if (produtos.length === 0) {
             console.log("Nenhum produto encontrado.");
             return [];
@@ -23,59 +23,85 @@ const catalogo= {
         return produtos;
     },
 
-    buscarPorNome(nome){
+    buscarPorNome(nome) {
         try {
-            const produto = produtos.find(p => p.nome === nome);
-            
+            const produto = produtos.find(
+                p => p.nome.toLowerCase() === nome.toLowerCase()
+            );
+
             if (!produto) {
                 throw new Error(`Produto '${nome}' não foi encontrado.`);
             }
+
             return produto;
-            
+
         } catch (error) {
             console.error("Erro ao buscar produto por nome:", error.message);
-            return [];
+            return null;
         }
-        
     },
 
-    buscarPorId(id){
-            return produtos.find(p => p.id === id);
-    },
-
-    filtrarPorPreco(min, max){
+    buscarPorId(id) {
         try {
-            const resultado = produtos.filter(p => p.preco >= min && p.preco <= max);
+            const produto = produtos.find(p => p.id === id);
+
+            if (!produto) {
+                throw new Error(`Produto com ID ${id} não encontrado.`);
+            }
+
+            return produto;
+
+        } catch (error) {
+            console.error("Erro ao buscar produto por ID:", error.message);
+            return null;
+        }
+    },
+
+    filtrarPorPreco(min, max) {
+        try {
+            const resultado = produtos.filter(
+                p => p.preco >= min && p.preco <= max
+            );
 
             if (resultado.length === 0) {
-                throw new Error("Nenhum produto encontrado");
+                throw new Error("Nenhum produto encontrado.");
             }
+
+            return resultado;
+
         } catch (error) {
             console.error("Erro ao filtrar produtos:", error.message);
             return [];
         }
-        
     },
-    atualizarEstoque(id, delta){
-        const produto = this.buscarPorId(id);
 
-        if (produto) {
+    atualizarEstoque(id, delta) {
+        try {
+            const produto = this.buscarPorId(id);
+
+            if (!produto) {
+                throw new Error("Produto não encontrado.");
+            }
+
             produto.estoque = Math.max(0, produto.estoque + delta);
-            return produto
-        }
-        return null
-    }
 
-}
+            return produto;
+
+        } catch (error) {
+            console.error("Erro ao atualizar estoque:", error.message);
+            return null;
+        }
+    }
+};
 
 // carrinho de compras
-const carrinho = []
+const carrinho = [];
 
-// adicionar(carrinho, produtoId, qtd) — adiciona verificando estoque; se já existe, soma quantidade.
+// adicionar itens ao carrinho
 const adicionar = (carrinho, produtoId, qtd) => {
     try {
         const produto = catalogo.buscarPorId(produtoId);
-        
+
         if (!produto) {
             throw new Error("Produto não encontrado!");
         }
@@ -86,18 +112,20 @@ const adicionar = (carrinho, produtoId, qtd) => {
 
         const item = carrinho.find(i => i.produtoId === produtoId);
 
-        item
-            ? item.quantidade = Math.min(item.quantidade + qtd, produto.estoque)
-            : carrinho.push({ produtoId, quantidade: qtd });
+        if (item) {
+            item.quantidade = Math.min(item.quantidade + qtd, produto.estoque);
+        } else {
+            carrinho.push({ produtoId, quantidade: qtd });
+        }
 
         console.log("Item adicionado!");
-        
-    } catch (erro) {
-        console.error(erro.message);
+
+    } catch (error) {
+        console.error(error.message);
     }
 };
 
-// remover(carrinho, produtoId) — remove o item do carrinho.
+// remover itens
 const remover = (carrinho, produtoId) => {
     try {
         const index = carrinho.findIndex(i => i.produtoId === produtoId);
@@ -108,23 +136,23 @@ const remover = (carrinho, produtoId) => {
 
         carrinho.splice(index, 1);
         console.log("Item removido!");
-        
-    } catch (erro) {
-        console.error(erro.message);
+
+    } catch (error) {
+        console.error(error.message);
     }
 };
 
-// alterarQuantidade(carrinho, produtoId, novaQtd) — ajusta quantidade, validando estoque; se novaQtd for 0, remove.
+// alterar quantidade
 const alterarQuantidade = (carrinho, produtoId, novaQtd) => {
     try {
         const produto = catalogo.buscarPorId(produtoId);
-        
+
         if (!produto) {
             throw new Error("Produto não encontrado!");
         }
 
         const item = carrinho.find(i => i.produtoId === produtoId);
-        
+
         if (!item) {
             throw new Error("Item não está no carrinho.");
         }
@@ -143,81 +171,75 @@ const alterarQuantidade = (carrinho, produtoId, novaQtd) => {
 
         item.quantidade = novaQtd;
         console.log("Quantidade atualizada!");
-        
-    } catch (erro) {
-        console.error(erro.message);
+
+    } catch (error) {
+        console.error(error.message);
     }
 };
 
-// calcularTotal(carrinho) — soma preços * quantidades (use catalogo para obter preço).
+// calcular total do carrinho
 const calcularTotal = (carrinho) =>
     carrinho.reduce((total, item) => {
         const produto = catalogo.buscarPorId(item.produtoId);
-        return total + (produto.preco * item.quantidade);
+        return total + produto.preco * item.quantidade;
     }, 0);
 
-// código do cupom + percentual de desconto
+// cupons de desconto
 const cupons = new Map([
-    ["DESCONTO10", 10], // 10% de desconto
-    ["PROMO5", 5],      // 5% de desconto
-    ["BLACK20", 20]     // 20% de desconto
+    ["DESCONTO10", 10],
+    ["PROMO5", 5],
+    ["BLACK20", 20]
 ]);
 
-// recebe o total e o código do cupom
+// aplicar cupom
 function aplicarCupom(total, codigoCupom) {
-    const percentual = cupons.get(codigoCupom); // busca no Map
+    const percentual = cupons.get(codigoCupom);
 
-    // se não encontrou, percentual será undefined
     if (!percentual) {
         console.log("Cupom inválido ou não cadastrado.");
-        return total; // retorna o total original
+        return total;
     }
 
     const desconto = total * (percentual / 100);
     const totalComDesconto = total - desconto;
 
-    console.log(
-        `Cupom aplicado: ${codigoCupom} (${percentual}% de desconto)`
-    );
+    console.log(`Cupom aplicado: ${codigoCupom} (${percentual}% de desconto)`);
 
     return totalComDesconto;
 }
 
-// testando os métodos do catálogo
-console.log("==============Listando produtos==============")
+// =================== TESTES ===================
+
+console.log("==============Listando produtos==============");
 console.log(catalogo.listar());
 
-console.log("==============Buscando por nome==============")
-console.log(catalogo.buscarPorNome("fio"));
-console.log(catalogo.buscarPorId(10))
+console.log("==============Buscando por nome==============");
+console.log(catalogo.buscarPorNome("Notebook")); // deve dar erro
+console.log(catalogo.buscarPorId(5));      // válido
 
-console.log("==============Filtrando por faixa de preço==============")
-console.log(catalogo.filtrarPorPreco(0, 5));
+console.log("==============Filtrando por faixa de preço==============");
+console.log(catalogo.filtrarPorPreco(100, 500)); // nenhum produto
 
-console.log("==============Atualizando estoque==============")
+console.log("==============Atualizando estoque==============");
 console.log(catalogo.atualizarEstoque(2, 100));
 
-console.log("==============Estoque atualizado==============")
-console.log(catalogo.listar())
+console.log("==============Estoque atualizado==============");
+console.log(catalogo.listar());
 
-// testando os métodos do carrinho
-console.log("==============Testando os métodos do carrinho==============")
+// carrinho
+console.log("==============Testando carrinho==============");
 adicionar(carrinho, 5, 2);
 adicionar(carrinho, 7, 3);
-adicionar(carrinho, 3, 10)
-alterarQuantidade(carrinho, 7, 1);
-// remover(carrinho, 1);
+adicionar(carrinho, 3, 10);
+adicionar(carrinho, 4, 2);
+remover(carrinho, 7)
+alterarQuantidade(carrinho, 5, 15);
 
-// detalhes do pedido
-console.log("==============Detalhes do pedido==============")
+console.log("==============Detalhes do pedido==============");
 console.log("Carrinho:", carrinho);
 console.log("Total: R$", calcularTotal(carrinho));
 
-console.log("==============Detalhes do pedido com desconto==============")
-// teste de cupom 
+console.log("==============Pedido com desconto==============");
 const total = calcularTotal(carrinho);
 console.log("Total sem desconto:", total);
-// aplicar um cupom de exemplo
-const totalComDesconto = aplicarCupom(total, "BLACK20");
-// mostrar total com desconto 
-console.log("Total com desconto:", totalComDesconto);
+console.log("Total com desconto:", aplicarCupom(total, "BLACK20"));
