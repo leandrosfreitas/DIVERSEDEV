@@ -11,6 +11,47 @@ const produtos = [
     { id: 9, nome: "Webcam Full HD", preco: 150.00, estoque: 18 },
     { id: 10, nome: "Carregador USB-C", preco: 70.00, estoque: 40 }
 ];
+// by MarcoCIFUENTES
+// =======================================================
+// ESTRUTURA DE DADOS: Histórico de Operações (Map)
+// =======================================================
+
+// 1. O Map para armazenar o histórico
+const historicoOperacoes = new Map();
+
+/**
+ * Registra uma operação no histórico usando timestamp como chave.
+ * @param {string} acao - O tipo de evento (ex: 'ADICIONAR', 'REMOVER', 'ERRO').
+ * @param {object} detalhes - Dados relevantes da operação.
+ */
+function registrarHistorico(acao, detalhes) {
+    const timestamp = Date.now();
+    const dataLegivel = new Date(timestamp).toLocaleString('pt-BR');
+
+    const registro = {
+        data: dataLegivel,
+        acao: acao,
+        detalhes: detalhes
+    };
+
+    historicoOperacoes.set(timestamp, registro);
+    
+    // Deixe este console.log para fins de teste
+    console.log(`[HISTÓRICO - ${dataLegivel}] Operação ${acao} registrada.`);
+}
+
+// Funcao utilitaria para listar todo o histórico
+function listarHistorico() {
+    console.log('\n--- REGISTRO DE ATIVIDADES (Marco Cifuentes) ---');
+    if (historicoOperacoes.size === 0) {
+        console.log("Nenhuma operação registrada.");
+        return;
+    }
+    for (const info of historicoOperacoes.values()) {
+        console.log(`[${info.data}] ${info.acao}:`, info.detalhes);
+    }
+    console.log('------------------------------------------------\n');
+}
 
 // catálogo de produtos
 const catalogo = {
@@ -120,6 +161,12 @@ const adicionar = (carrinho, produtoId, qtd) => {
 
         console.log("Item adicionado!");
 
+// by MarcoCIFUENTES: REGISTRO DE SUCESSO
+registrarHistorico('ADICIONAR_SUCESSO', {
+    produtoId: produtoId,
+    quantidade: qtd
+});
+
     } catch (error) {
         console.error(error.message);
     }
@@ -136,6 +183,11 @@ const remover = (carrinho, produtoId) => {
 
         carrinho.splice(index, 1);
         console.log("Item removido!");
+
+// by MarcoCIFUENTES: REGISTRO DE SUCESSO
+registrarHistorico('REMOVER_SUCESSO', {
+    produtoId: produtoId
+});
 
     } catch (error) {
         console.error(error.message);
