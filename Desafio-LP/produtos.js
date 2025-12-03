@@ -65,7 +65,7 @@ const catalogo= {
         }
         return null
     }
-    
+
 }
 
 // carrinho de compras
@@ -150,25 +150,38 @@ const alterarQuantidade = (carrinho, produtoId, novaQtd) => {
 };
 
 // calcularTotal(carrinho) — soma preços * quantidades (use catalogo para obter preço).
-const calcularTotal = (carrinho) => {
-    try {
-        const total = carrinho.reduce((total, item) => {
-            const produto = catalogo.buscarPorId(item.produtoId);
-            
-            if (!produto) {
-                throw new Error(`Produto com ID ${item.produtoId} não encontrado!`);
-            }
-            
-            return total + (produto.preco * item.quantidade);
-        }, 0);
-        
-        return total;
-        
-    } catch (erro) {
-        console.error(erro.message);
-        return 0;
+const calcularTotal = (carrinho) =>
+    carrinho.reduce((total, item) => {
+        const produto = catalogo.buscarPorId(item.produtoId);
+        return total + (produto.preco * item.quantidade);
+    }, 0);
+
+// código do cupom + percentual de desconto
+const cupons = new Map([
+    ["DESCONTO10", 10], // 10% de desconto
+    ["PROMO5", 5],      // 5% de desconto
+    ["BLACK20", 20]     // 20% de desconto
+]);
+
+// recebe o total e o código do cupom
+function aplicarCupom(total, codigoCupom) {
+    const percentual = cupons.get(codigoCupom); // busca no Map
+
+    // se não encontrou, percentual será undefined
+    if (!percentual) {
+        console.log("Cupom inválido ou não cadastrado.");
+        return total; // retorna o total original
     }
-};
+
+    const desconto = total * (percentual / 100);
+    const totalComDesconto = total - desconto;
+
+    console.log(
+        `Cupom aplicado: ${codigoCupom} (${percentual}% de desconto)`
+    );
+
+    return totalComDesconto;
+}
 
 // testando os métodos do catálogo
 console.log("==============Listando produtos==============")
@@ -199,3 +212,13 @@ remover(carrinho, 1);
 console.log("==============Detalhes do pedido==============")
 console.log("Carrinho:", carrinho);
 console.log("Total: R$", calcularTotal(carrinho));
+
+// teste de cupom 
+const total = calcularTotal(carrinho);
+console.log("Total sem desconto:", total);
+
+// aplicar um cupom de exemplo
+const totalComDesconto = aplicarCupom(total, "BLACK20");
+
+// mostrar total com desconto 
+console.log("Total com desconto:", totalComDesconto);
