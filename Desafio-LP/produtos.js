@@ -1,5 +1,5 @@
 //lista de produtos 
-const produtos = [
+const produtosArray = [
     { id: 1, nome: "Notebook", preco: 3500.00, estoque: 10 },
     { id: 2, nome: "Mouse Gamer", preco: 120.00, estoque: 45 },
     { id: 3, nome: "Teclado Mecânico", preco: 250.00, estoque: 20 },
@@ -12,6 +12,11 @@ const produtos = [
     { id: 10, nome: "Carregador USB-C", preco: 70.00, estoque: 40 }
 ];
 
+//criação do map, opção A
+const mapaProdutos = new Map();
+produtosArray.forEach(p => mapaProdutos.set(p.id, p));
+
+
 // catálogo de produtos
 const catalogo = {
 
@@ -20,12 +25,12 @@ const catalogo = {
             console.log("Nenhum produto encontrado.");
             return [];
         }
-        return produtos;
+        return Array.from(mapaProdutos.values();
     },
 
     buscarPorNome(nome) {
         try {
-            const produto = produtos.find(
+            const produto = Array.from(mapaProdutos.values().find(
                 p => p.nome.toLowerCase() === nome.toLowerCase()
             );
 
@@ -43,7 +48,7 @@ const catalogo = {
 
     buscarPorId(id) {
         try {
-            const produto = produtos.find(p => p.id === id);
+            const produto = mapaProdutos.get(id);
 
             if (!produto) {
                 throw new Error(`Produto com ID ${id} não encontrado.`);
@@ -59,7 +64,7 @@ const catalogo = {
 
     filtrarPorPreco(min, max) {
         try {
-            const resultado = produtos.filter(
+            const resultado = Array.from(mapaProdutos.values()).filter(
                 p => p.preco >= min && p.preco <= max
             );
 
