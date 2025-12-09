@@ -1,4 +1,4 @@
-//lista de produtos 
+// Lista de produtos 
 const produtosArray = [
     { id: 1, nome: "Notebook", preco: 3500.00, estoque: 10 },
     { id: 2, nome: "Mouse Gamer", preco: 120.00, estoque: 45 },
@@ -12,16 +12,14 @@ const produtosArray = [
     { id: 10, nome: "Carregador USB-C", preco: 70.00, estoque: 40 }
 ];
 
-//criação do map, opção A
-const mapaProdutos = new Map();
-produtosArray.forEach(p => mapaProdutos.set(p.id, p));
+// Criação do Map
+const mapaProdutos = new Map(produtosArray.map(p => [p.id, p]));
 
-
-// catálogo de produtos
+// Catálogo de produtos
 const catalogo = {
 
     listar() {
-        if (mapaProdutos.length === 0) {
+        if (mapaProdutos.size === 0) {
             console.log("Nenhum produto encontrado.");
             return [];
         }
@@ -29,175 +27,153 @@ const catalogo = {
     },
 
     buscarPorNome(nome) {
-        try {
-            const produto = Array.from(mapaProdutos.values().find(
-                p => p.nome.toLowerCase() === nome.toLowerCase()
-                )
-            );
+        const produto = Array.from(mapaProdutos.values())
+            .find(p => p.nome.toLowerCase() === nome.toLowerCase());
 
-            if (!produto) {
-                throw new Error(`Produto '${nome}' não foi encontrado.`);
-            }
-
-            return produto;
-
-        } catch (error) {
-            console.error("Erro ao buscar produto por nome:", error.message);
+        if (!produto) {
+            console.error(`Produto '${nome}' não foi encontrado.`);
             return null;
         }
+
+        return produto;
     },
 
     buscarPorId(id) {
-        try {
-            const produto = mapaProdutos.get(id);
+        const produto = mapaProdutos.get(id);
 
-            if (!produto) {
-                throw new Error(`Produto com ID ${id} não encontrado.`);
-            }
-
-            return produto;
-
-        } catch (error) {
-            console.error("Erro ao buscar produto por ID:", error.message);
+        if (!produto) {
+            console.error(`Produto com ID ${id} não encontrado.`);
             return null;
         }
+
+        return produto;
     },
 
     filtrarPorPreco(min, max) {
-        try {
-            const resultado = Array.from(mapaProdutos.values()).filter(
-                p => p.preco >= min && p.preco <= max
-            );
+        const resultado = Array.from(mapaProdutos.values())
+            .filter(p => p.preco >= min && p.preco <= max);
 
-            if (resultado.length === 0) {
-                throw new Error("Nenhum produto encontrado.");
-            }
-
-            return resultado;
-
-        } catch (error) {
-            console.error("Erro ao filtrar produtos:", error.message);
-            return [];
+        if (resultado.length === 0) {
+            console.error("Nenhum produto encontrado na faixa de preço.");
         }
+
+        return resultado;
     },
 
     atualizarEstoque(id, delta) {
-        try {
-            const produto = this.buscarPorId(id);
+        const produto = this.buscarPorId(id);
 
-            if (!produto) {
-                throw new Error("Produto não encontrado.");
-            }
+        if (!produto) return null;
 
-            produto.estoque = Math.max(0, produto.estoque + delta);
+        const novoEstoque = produto.estoque + delta;
 
-            return produto;
-
-        } catch (error) {
-            console.error("Erro ao atualizar estoque:", error.message);
+        if (novoEstoque < 0) {
+            console.error("Estoque não pode ficar negativo.");
             return null;
         }
+
+        produto.estoque = novoEstoque;
+        return produto;
     }
 };
 
-// carrinho de compras
+// Carrinho
 const carrinho = [];
 
-// adicionar itens ao carrinho
+// Adicionar item ao carrinho
 const adicionar = (carrinho, produtoId, qtd) => {
-    try {
-        const produto = catalogo.buscarPorId(produtoId);
+    const produto = catalogo.buscarPorId(produtoId);
 
-        if (!produto) {
-            throw new Error("Produto não encontrado!");
-        }
+    if (!produto) return;
 
-        if (qtd > produto.estoque) {
-            throw new Error("Quantidade maior que o estoque!");
-        } 
-
-        const item = carrinho.find(i => i.produtoId === produtoId);
-
-        if (item) {
-            item.quantidade = Math.min(item.quantidade + qtd, produto.estoque);
-        } else {
-            carrinho.push({ produtoId, quantidade: qtd });
-        }
-
-        console.log("Item adicionado!");
-
-    } catch (error) {
-        console.error(error.message);
+    if (qtd <= 0) {
+        console.error("Quantidade deve ser maior que zero.");
+        return;
     }
-};
 
-// remover itens
-const remover = (carrinho, produtoId) => {
-    try {
-        const index = carrinho.findIndex(i => i.produtoId === produtoId);
-
-        if (index === -1) {
-            throw new Error("Item não encontrado no carrinho.");
-        }
-
-        carrinho.splice(index, 1);
-        console.log("Item removido!");
-
-    } catch (error) {
-        console.error(error.message);
+    if (qtd > produto.estoque) {
+        console.error("Quantidade maior que o estoque!");
+        return;
     }
-};
 
-// alterar quantidade
-const alterarQuantidade = (carrinho, produtoId, novaQtd) => {
-    try {
-        const produto = catalogo.buscarPorId(produtoId);
+    const item = carrinho.find(i => i.produtoId === produtoId);
 
-        if (!produto) {
-            throw new Error("Produto não encontrado!");
-        }
-
-        const item = carrinho.find(i => i.produtoId === produtoId);
-
-        if (!item) {
-            throw new Error("Item não está no carrinho.");
-        }
-
-        if (novaQtd === 0) {
-            return remover(carrinho, produtoId);
-        }
-
-        if (novaQtd < 0) {
-            throw new Error("Quantidade não pode ser negativa!");
-        }
+    if (item) {
+        const novaQtd = item.quantidade + qtd;
 
         if (novaQtd > produto.estoque) {
-            throw new Error("Quantidade maior que o estoque!");
+            console.error("Quantidade total ultrapassa o estoque!");
+            return;
         }
 
         item.quantidade = novaQtd;
-        console.log("Quantidade atualizada!");
-
-    } catch (error) {
-        console.error(error.message);
+    } else {
+        carrinho.push({ produtoId, quantidade: qtd });
     }
+
+    console.log("Item adicionado!");
 };
 
-// calcular total do carrinho
+// Remover item
+const remover = (carrinho, produtoId) => {
+    const index = carrinho.findIndex(i => i.produtoId === produtoId);
+
+    if (index === -1) {
+        console.error("Item não encontrado no carrinho.");
+        return;
+    }
+
+    carrinho.splice(index, 1);
+    console.log("Item removido!");
+};
+
+// Alterar quantidade
+const alterarQuantidade = (carrinho, produtoId, novaQtd) => {
+    const produto = catalogo.buscarPorId(produtoId);
+    if (!produto) return;
+
+    const item = carrinho.find(i => i.produtoId === produtoId);
+
+    if (!item) {
+        console.error("Item não está no carrinho.");
+        return;
+    }
+
+    if (novaQtd < 0) {
+        console.error("Quantidade não pode ser negativa!");
+        return;
+    }
+
+    if (novaQtd === 0) {
+        remover(carrinho, produtoId);
+        return;
+    }
+
+    if (novaQtd > produto.estoque) {
+        console.error("Quantidade maior que o estoque!");
+        return;
+    }
+
+    item.quantidade = novaQtd;
+    console.log("Quantidade atualizada!");
+};
+
+// Calcular total
 const calcularTotal = (carrinho) =>
     carrinho.reduce((total, item) => {
         const produto = catalogo.buscarPorId(item.produtoId);
+        if (!produto) return total;
         return total + produto.preco * item.quantidade;
     }, 0);
 
-// cupons de desconto
+// Cupons de desconto
 const cupons = new Map([
     ["DESCONTO10", 10],
     ["PROMO5", 5],
     ["BLACK20", 20]
 ]);
 
-// aplicar cupom
+// Aplicar cupom
 function aplicarCupom(total, codigoCupom) {
     const percentual = cupons.get(codigoCupom);
 
@@ -234,7 +210,6 @@ console.log(catalogo.atualizarEstoque(10, 100));
 console.log("==============Estoque atualizado==============");
 console.log(catalogo.listar());
 
-// carrinho
 console.log("==============Testando carrinho==============");
 adicionar(carrinho, 5, 2);
 adicionar(carrinho, 7, 3);
